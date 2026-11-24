@@ -164,15 +164,18 @@ The backend tests use a **fake clock** (`tests/helpers.js`), so overdue loans an
 ## 6. SonarQube
 
 1. Start a SonarQube server, for example with Docker: `docker run -d -p 9000:9000 sonarqube:community`, then open http://localhost:9000 (default login admin/admin) and create a token.
-2. Install the scanner: `npm install -g @sonar/scan` (or download `sonar-scanner`).
+2. Use the SonarScanner npm package (`@sonar/scan`) or download the standalone scanner.
 3. Create the coverage reports (`npm run test:coverage` in **both** `backend/` and `frontend/`).
-4. From this folder (`library-system/`), run:
+4. From this folder (`library-system/`), set `SONAR_TOKEN` and run:
 
-```bash
-sonar-scanner -Dsonar.host.url=http://localhost:9000 -Dsonar.token=YOUR_TOKEN
+```powershell
+$env:SONAR_TOKEN = '<your SonarQube token>'
+npm exec --yes --package=@sonar/scan -- sonar-scanner-npm -Dsonar.host.url=http://localhost:9000 -Dsonar.token=$env:SONAR_TOKEN
 ```
 
 The settings are in `sonar-project.properties`.
+
+The project's defect register and the SonarQube execution/metrics report are in [`docs/05-defect-tracking.md`](docs/05-defect-tracking.md) and [`docs/06-sonarqube-and-quality-metrics.md`](docs/06-sonarqube-and-quality-metrics.md).
 
 ---
 
