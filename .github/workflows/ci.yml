@@ -108,11 +108,15 @@ jobs:
 
       - name: Start backend API (fresh in-memory database)
         working-directory: library-system/backend
-        run: DB_FILE=:memory: nohup node src/server.js > ../backend.log 2>&1 &
+        env:
+          DB_FILE: ':memory:'
+        run: |
+          nohup node src/server.js > ../backend.log 2>&1 &
 
       - name: Start frontend
         working-directory: library-system/frontend
-        run: nohup npx vite --port 3000 --strictPort > ../frontend.log 2>&1 &
+        run: |
+          nohup npx vite --port 3000 --strictPort > ../frontend.log 2>&1 &
 
       - name: Wait for the app to be ready
         run: |
