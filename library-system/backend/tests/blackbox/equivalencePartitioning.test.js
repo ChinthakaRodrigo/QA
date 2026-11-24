@@ -160,11 +160,12 @@ describe('EP-E Borrow: bookId (F-05)', () => {
     expect((await api.borrow(999)).status).toBe(404);
   });
 
-  knownDefect.each([
+  test.each([
     ['EP-50', 'boolean', true],
     ['EP-51', 'list', [2]],
-  ])('%s invalid: %s [BB-04]', async (_id, _class, bookId) => {
+  ])('%s invalid: %s [BB-04 fixed]', async (_id, _class, bookId) => {
     expect((await api.borrow(bookId)).status).toBe(400);
+    expect(await api.myLoans()).toEqual([]);
   });
 });
 

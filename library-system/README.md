@@ -7,7 +7,7 @@ A small full-stack CRUD application built as the system under test for a QA / so
 | Frontend | React 19 + Vite + React Router      | `frontend/` |
 | Backend  | Node.js + Express 5 (REST API)      | `backend/`  |
 | Database | SQL (SQLite, built into Node.js)    | `backend/src/schema.sql` |
-| Tests    | Jest + Supertest (backend), Vitest + React Testing Library (frontend) | `backend/tests/`, `frontend/src/__tests__/` |
+| Tests    | Jest + Supertest + Cucumber (backend), Vitest + React Testing Library (frontend) | `backend/tests/`, `frontend/src/__tests__/` |
 
 ---
 
@@ -146,6 +146,8 @@ npm run test:unit        # only unit tests (validation, loan rules, passwords)
 npm run test:integration # only API tests (real in-memory SQL database)
 npm run test:blackbox    # black-box tests (EP, BVA, decision tables - see docs/03-black-box-testing.md)
 npm run test:whitebox    # white-box tests with coverage (see docs/04-white-box-testing.md)
+npm run test:tdd         # TDD unit tests for loan renewal (see docs/05-tdd-bdd.md)
+npm run test:bdd         # BDD scenarios in Gherkin, run with Cucumber (see docs/05-tdd-bdd.md)
 npm run test:coverage    # creates backend/coverage/ (lcov + HTML report)
 
 cd ../frontend
@@ -162,15 +164,18 @@ The backend tests use a **fake clock** (`tests/helpers.js`), so overdue loans an
 ## 6. SonarQube
 
 1. Start a SonarQube server, for example with Docker: `docker run -d -p 9000:9000 sonarqube:community`, then open http://localhost:9000 (default login admin/admin) and create a token.
-2. Install the scanner: `npm install -g @sonar/scan` (or download `sonar-scanner`).
+2. Use the SonarScanner npm package (`@sonar/scan`) or download the standalone scanner.
 3. Create the coverage reports (`npm run test:coverage` in **both** `backend/` and `frontend/`).
-4. From this folder (`library-system/`), run:
+4. From this folder (`library-system/`), set `SONAR_TOKEN` and run:
 
-```bash
-sonar-scanner -Dsonar.host.url=http://localhost:9000 -Dsonar.token=YOUR_TOKEN
+```powershell
+$env:SONAR_TOKEN = '<your SonarQube token>'
+npm exec --yes --package=@sonar/scan -- sonar-scanner-npm -Dsonar.host.url=http://localhost:9000 -Dsonar.token=$env:SONAR_TOKEN
 ```
 
 The settings are in `sonar-project.properties`.
+
+The project's defect register and the SonarQube execution/metrics report are in [`docs/05-defect-tracking.md`](docs/05-defect-tracking.md) and [`docs/06-sonarqube-and-quality-metrics.md`](docs/06-sonarqube-and-quality-metrics.md).
 
 ---
 
@@ -187,8 +192,9 @@ library-system/
 │   │   ├── middleware/auth.js login token checks
 │   │   ├── routes/            auth.js, books.js, loans.js, users.js
 │   │   └── utils/             validation.js, loanRules.js, password.js
+│   ├── features/          BDD: Gherkin .feature files + Cucumber step definitions
 │   └── tests/
-│       ├── unit/              tests for the plain functions
+│       ├── unit/              tests for the plain functions (incl. TDD loan renewal)
 │       ├── integration/       API tests with Supertest
 │       ├── blackbox/          equivalence partitioning, boundary value and decision table tests
 │       └── whitebox/          basis path, statement and branch coverage tests

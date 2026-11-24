@@ -27,9 +27,32 @@ function getLoanStatus(loan, now) {
   return new Date(now) > new Date(loan.due_at) ? 'overdue' : 'borrowed';
 }
 
+// Built with TDD (task 3.5, tests in tests/unit/loanRenewal.test.js).
+// An active, not-overdue loan can be extended by LOAN_DAYS, at most MAX_RENEWALS times.
+const MAX_RENEWALS = 2;
+
+const RENEWAL_REFUSED = {
+  returned: 'This book has already been returned',
+  overdue: 'Overdue books cannot be renewed',
+};
+
+function checkRenewal(loan, now) {
+  const status = getLoanStatus(loan, now);
+  if (status !== 'borrowed') return { allowed: false, reason: RENEWAL_REFUSED[status] };
+
+  const renewals = loan.renewals ?? 0;
+  if (renewals >= MAX_RENEWALS) {
+    return { allowed: false, reason: `A loan can be renewed at most ${MAX_RENEWALS} times` };
+  }
+  // A renewal adds a full loan period to the current due date.
+  return { allowed: true, newDueAt: calculateDueDate(loan.due_at), renewalsLeft: MAX_RENEWALS - renewals - 1 };
+}
+
 module.exports = {
   LOAN_DAYS,
   MAX_ACTIVE_LOANS,
+  MAX_RENEWALS,
+  checkRenewal,
   FINE_PER_DAY,
   MAX_FINE,
   calculateDueDate,
