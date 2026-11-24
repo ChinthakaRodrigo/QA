@@ -122,7 +122,16 @@ See [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml).
 
 ## 6.4 Evidence: passing pipeline run
 
-The screenshots below come from a GitHub Actions run after this work was pushed. To make them again for any run of this public repository:
+The workflow was pushed on branch `ci/6-automation`.
+
+| Run | Commit | Result | Notes |
+|---|---|---|---|
+| #1 | `25f38a9` | ❌ Failure | *Invalid workflow file*: in `run: DB_FILE=:memory: nohup …`, YAML reads the `: ` (colon followed by a space) as a key/value separator. Fix: move `DB_FILE` into the step's `env:` block. |
+| #2 | `3fa57f7` | ✅ Success | All 3 jobs passed: backend 29 s, frontend 14 s, Selenium UI 21 s, 55 s in total. 3 artifacts were uploaded. |
+
+Run #2 showed a warning that the `@v4` actions run on the deprecated Node.js 20. The actions were then updated to `@v5`.
+
+The screenshots below were taken with `scripts/capture-pipeline.js`, which opens the public run pages in headless Chrome. To make them again for any run of this public repository:
 
 ```bash
 cd library-system/e2e
@@ -132,7 +141,7 @@ npm run capture:pipeline -- https://github.com/<owner>/<repo>/actions/runs/<run 
 | Screenshot | Shows |
 |---|---|
 | `images/ci-01-workflow-runs.png` | The Actions tab: the CI workflow runs with a green tick |
-| `images/ci-02-run-summary.png` | One run: the backend → e2e and frontend → e2e job graph all green, the Selenium results table and the uploaded artifacts |
+| `images/ci-02-run-summary.png` | One run: status *Success*, the backend → e2e and frontend → e2e job graph all green, and the 3 uploaded artifacts (`backend-reports`, `e2e-results`, `frontend-coverage`). The table of each Selenium test (job summary) is shown only to signed-in users. |
 
 ![Workflow runs](images/ci-01-workflow-runs.png)
 

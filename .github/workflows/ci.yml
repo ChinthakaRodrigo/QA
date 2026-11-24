@@ -27,9 +27,9 @@ jobs:
       run:
         working-directory: library-system/backend
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
@@ -45,7 +45,7 @@ jobs:
 
       - name: Upload backend reports
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: backend-reports
           path: |
@@ -60,9 +60,9 @@ jobs:
       run:
         working-directory: library-system/frontend
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
@@ -78,7 +78,7 @@ jobs:
 
       - name: Upload frontend coverage
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: frontend-coverage
           path: library-system/frontend/coverage/
@@ -89,9 +89,9 @@ jobs:
     needs: [backend, frontend]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
@@ -145,7 +145,7 @@ jobs:
 
       - name: Upload screenshots, JUnit report and server logs
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: e2e-results
           path: |
