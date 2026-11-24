@@ -7,7 +7,7 @@ A small full-stack CRUD application built as the system under test for a QA / so
 | Frontend | React 19 + Vite + React Router      | `frontend/` |
 | Backend  | Node.js + Express 5 (REST API)      | `backend/`  |
 | Database | SQL (SQLite, built into Node.js)    | `backend/src/schema.sql` |
-| Tests    | Jest + Supertest (backend), Vitest + React Testing Library (frontend) | `backend/tests/`, `frontend/src/__tests__/` |
+| Tests    | Jest + Supertest + Cucumber (backend), Vitest + React Testing Library (frontend) | `backend/tests/`, `frontend/src/__tests__/` |
 
 ---
 
@@ -146,6 +146,8 @@ npm run test:unit        # only unit tests (validation, loan rules, passwords)
 npm run test:integration # only API tests (real in-memory SQL database)
 npm run test:blackbox    # black-box tests (EP, BVA, decision tables - see docs/03-black-box-testing.md)
 npm run test:whitebox    # white-box tests with coverage (see docs/04-white-box-testing.md)
+npm run test:tdd         # TDD unit tests for loan renewal (see docs/05-tdd-bdd.md)
+npm run test:bdd         # BDD scenarios in Gherkin, run with Cucumber (see docs/05-tdd-bdd.md)
 npm run test:coverage    # creates backend/coverage/ (lcov + HTML report)
 
 cd ../frontend
@@ -187,8 +189,9 @@ library-system/
 │   │   ├── middleware/auth.js login token checks
 │   │   ├── routes/            auth.js, books.js, loans.js, users.js
 │   │   └── utils/             validation.js, loanRules.js, password.js
+│   ├── features/          BDD: Gherkin .feature files + Cucumber step definitions
 │   └── tests/
-│       ├── unit/              tests for the plain functions
+│       ├── unit/              tests for the plain functions (incl. TDD loan renewal)
 │       ├── integration/       API tests with Supertest
 │       ├── blackbox/          equivalence partitioning, boundary value and decision table tests
 │       └── whitebox/          basis path, statement and branch coverage tests
