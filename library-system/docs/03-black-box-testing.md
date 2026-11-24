@@ -29,13 +29,13 @@ npm install
 npm run test:blackbox
 ```
 
-Tests for open defects check the *correct* behaviour and are marked as "expected to fail" (`knownDefect`), so the normal run stays green. To see them fail:
+Tests for open defects check the *correct* behaviour and are marked as "expected to fail" (`knownDefect`), so the normal run stays green. BB-04 was fixed on 2026-11-24; EP-50/EP-51 are now ordinary regression tests and both pass. To expose the remaining defects:
 
 ```powershell
 $env:SHOW_DEFECTS = '1'; npm run test:blackbox; Remove-Item Env:SHOW_DEFECTS
 ```
 
-When a defect is fixed, the normal run reports its test. Change `knownDefect` back to `test` to close it.
+When an open defect is fixed, change its `knownDefect` test back to `test`; this has been done for BB-04.
 
 ---
 
@@ -276,20 +276,20 @@ R7 has a second test (DT3-R7b, Pass): the user borrowed a book and returned it, 
 
 | Technique | Tests | Passed | Failed |
 |---|---|---|---|
-| Equivalence Partitioning | 56 | 47 | 9 |
+| Equivalence Partitioning | 56 | 49 | 7 |
 | Boundary Value Analysis | 61 | 61 | 0 |
 | Decision tables | 23 | 23 | 0 |
-| **Total** | **140** | **131 (93.6 %)** | **9 (6.4 %)** |
+| **Total** | **140** | **133 (95.0 %)** | **7 (5.0 %)** |
 
 ### Defects found
-The 9 failed tests come from **6 defects**. The severities are proposals, to be confirmed when the defects are logged (task 3.8).
+The initial run found 9 failed cases across **6 defects**. After BB-04 was fixed and retested, 7 failed cases remain across **5 open defects**. Severity labels are proposals recorded in the [defect register](05-defect-tracking.md).
 
 | ID | Feature | Defect | Steps to reproduce | Expected | Actual | Severity | Tests |
 |---|---|---|---|---|---|---|---|
 | BB-01 | F-03 | `%` and `_` act as wildcards in book search | Books → search `%` | No books | All books listed | Medium | EP-41, EP-42 |
 | BB-02 | F-03 | Dashed ISBN is accepted when adding a book but not when searching | Books → search `978-0-13-235088-4` | Clean Code | No books | Low | EP-43 |
 | BB-03 | F-01 | Malformed email domains are accepted | Register with `sam@test..com` | Validation error | Account created | Medium | EP-13, EP-14 |
-| BB-04 | F-05 | `bookId` that is not a number is converted and accepted | `POST /api/loans` with `{"bookId": true}` | 400 | 201, book 1 borrowed | Medium | EP-50, EP-51 |
+| BB-04 | F-05 | `bookId` that is not a number is converted and accepted | `POST /api/loans` with `{"bookId": true}` | 400 | **Initial:** 201, book 1 borrowed; **Retest:** 400, no loan created | Medium | EP-50, EP-51 (fixed) |
 | BB-05 | F-09 | Oversized request body causes a server error | `POST /api/auth/login` with a 200,000-character password | 413 | 500 | Medium | EP-55 |
 | BB-06 | F-09 | Badly encoded URL causes a server error | `GET /api/books/%E0%A4%A` | 400 | 500 | Medium | EP-56 |
 
@@ -305,4 +305,4 @@ These are not counted as defects because the README does not define the behaviou
 5. **Order of error messages** when several borrowing rules are broken is not defined.
 
 ### Conclusion
-All tested boundaries and decision rules work as specified, including the high-risk features F-05, F-06 and F-10. All defects were found by invalid or unusual classes in Equivalence Partitioning, so input handling (search, email, `bookId`, request errors) is the area to improve first. No Critical or High defects were found in this task.
+All boundary and decision-table cases pass. BB-04's two invalid-ID cases now pass as regressions; 7 behavior mismatches remain across BB-01, BB-02, BB-03, BB-05 and BB-06. All six defects were found by invalid or unusual equivalence classes, so input handling (search, email and request errors) remains the main area to improve. No Critical or High defects were found in this task.

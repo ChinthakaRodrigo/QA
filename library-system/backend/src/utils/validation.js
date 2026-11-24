@@ -72,6 +72,9 @@ function validateBook({ title, author, isbn, year, copies } = {}, currentYear = 
 
 // Turns a URL id like "12" into the number 12. Returns null if it is not a positive whole number.
 function parseId(value) {
+  // IDs arrive as route strings or JSON numbers. Reject other JSON types before
+  // coercion so values such as true and [2] cannot silently become valid IDs.
+  if (typeof value !== 'string' && typeof value !== 'number') return null;
   const id = Number(value);
   return Number.isInteger(id) && id > 0 ? id : null;
 }
