@@ -45,7 +45,7 @@ jobs:
 
       - name: Upload backend reports
         if: always()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: backend-reports
           path: |
@@ -78,7 +78,7 @@ jobs:
 
       - name: Upload frontend coverage
         if: always()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: frontend-coverage
           path: library-system/frontend/coverage/
@@ -145,7 +145,7 @@ jobs:
 
       - name: Upload screenshots, JUnit report and server logs
         if: always()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: e2e-results
           path: |
