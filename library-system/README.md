@@ -144,6 +144,8 @@ cd backend
 npm test                 # all backend tests
 npm run test:unit        # only unit tests (validation, loan rules, passwords)
 npm run test:integration # only API tests (real in-memory SQL database)
+npm run test:blackbox    # black-box tests (EP, BVA, decision tables - see docs/03-black-box-testing.md)
+npm run test:whitebox    # white-box tests with coverage (see docs/04-white-box-testing.md)
 npm run test:coverage    # creates backend/coverage/ (lcov + HTML report)
 
 cd ../frontend
@@ -187,7 +189,9 @@ library-system/
 │   │   └── utils/             validation.js, loanRules.js, password.js
 │   └── tests/
 │       ├── unit/              tests for the plain functions
-│       └── integration/       API tests with Supertest
+│       ├── integration/       API tests with Supertest
+│       ├── blackbox/          equivalence partitioning, boundary value and decision table tests
+│       └── whitebox/          basis path, statement and branch coverage tests
 ├── frontend/
 │   └── src/
 │       ├── api.js             all calls to the backend
