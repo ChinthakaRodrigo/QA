@@ -127,9 +127,9 @@ The workflow was pushed on branch `ci/6-automation`.
 | Run | Commit | Result | Notes |
 |---|---|---|---|
 | #1 | `25f38a9` | ❌ Failure | *Invalid workflow file*: in `run: DB_FILE=:memory: nohup …`, YAML reads the `: ` (colon followed by a space) as a key/value separator. Fix: move `DB_FILE` into the step's `env:` block. |
-| #2 | `3fa57f7` | ✅ Success | All 3 jobs passed: backend 29 s, frontend 14 s, Selenium UI 21 s, 55 s in total. 3 artifacts were uploaded. |
-
-Run #2 showed a warning that the `@v4` actions run on the deprecated Node.js 20. The actions were then updated to `@v5`.
+| #2 | `3fa57f7` | ✅ Success | All 3 jobs passed: backend 29 s, frontend 14 s, Selenium UI 21 s, 55 s in total. 3 artifacts were uploaded. There were 3 warnings because the `@v4` actions run on the deprecated Node.js 20. |
+| #3 | `6da0c27` | ✅ Success | Moved `checkout` and `setup-node` to `@v5`. `upload-artifact@v5` still targets Node.js 20, so it still gave a warning. |
+| #4 | `1025c6c` | ✅ Success | Moved `upload-artifact` to `@v6` (Node.js 24). All 3 jobs passed with **no warnings**: backend 36 s, frontend 20 s, Selenium UI 46 s, 1 min 28 s in total. **This is the evidence run.** |
 
 The screenshots below were taken with `scripts/capture-pipeline.js`, which opens the public run pages in headless Chrome. To make them again for any run of this public repository:
 
