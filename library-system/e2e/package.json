@@ -1,0 +1,18 @@
+{
+  "name": "library-e2e",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Selenium WebDriver UI tests for the Library Management System",
+  "scripts": {
+    "test": "node --test --test-concurrency=1 \"tests/**/*.test.js\"",
+    "pretest:ci": "node -e \"require('fs').mkdirSync('reports',{recursive:true})\"",
+    "test:ci": "node --test --test-concurrency=1 --test-reporter=spec --test-reporter-destination=stdout --test-reporter=junit --test-reporter-destination=reports/junit.xml \"tests/**/*.test.js\"",
+    "capture:pipeline": "node scripts/capture-pipeline.js"
+  },
+  "engines": {
+    "node": ">=22.13"
+  },
+  "devDependencies": {
+    "selenium-webdriver": "^4.51.0"
+  }
+}

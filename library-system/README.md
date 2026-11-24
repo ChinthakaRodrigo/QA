@@ -7,7 +7,8 @@ A small full-stack CRUD application built as the system under test for a QA / so
 | Frontend | React 19 + Vite + React Router      | `frontend/` |
 | Backend  | Node.js + Express 5 (REST API)      | `backend/`  |
 | Database | SQL (SQLite, built into Node.js)    | `backend/src/schema.sql` |
-| Tests    | Jest + Supertest + Cucumber (backend), Vitest + React Testing Library (frontend) | `backend/tests/`, `frontend/src/__tests__/` |
+| Tests    | Jest + Supertest + Cucumber (backend), Vitest + React Testing Library (frontend), Selenium WebDriver (UI) | `backend/tests/`, `backend/features/`, `frontend/src/__tests__/`, `e2e/` |
+| CI       | GitHub Actions (runs every suite on each push) | `../.github/workflows/ci.yml` |
 
 ---
 
@@ -157,6 +158,21 @@ npm run test:coverage    # creates frontend/coverage/ (lcov + HTML report)
 
 Open `coverage/index.html` in either folder to see the coverage report in a browser.
 
+### UI tests with Selenium
+
+Start the backend (`DB_FILE=:memory: npm start` for a fresh database) and the frontend (`npm run dev`), then:
+
+```bash
+cd e2e
+npm install
+npm test                 # 8 Selenium WebDriver tests in headless Chrome (see docs/06-test-automation-and-ci.md)
+```
+
+### Continuous integration
+
+GitHub Actions (`.github/workflows/ci.yml` in the repository root) runs on every push and pull request:
+backend Jest + Cucumber, frontend Vitest + build, then the Selenium UI tests against the running app.
+
 The backend tests use a **fake clock** (`tests/helpers.js`), so overdue loans and fines are tested without waiting 14 days.
 
 ---
@@ -198,6 +214,7 @@ library-system/
 │       ├── integration/       API tests with Supertest
 │       ├── blackbox/          equivalence partitioning, boundary value and decision table tests
 │       └── whitebox/          basis path, statement and branch coverage tests
+├── e2e/                       Selenium WebDriver UI tests (tests/, support/driver.js)
 ├── frontend/
 │   └── src/
 │       ├── api.js             all calls to the backend
