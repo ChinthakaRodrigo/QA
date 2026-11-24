@@ -52,11 +52,7 @@ router.post('/login', (req, res) => {
 
 // GET /api/auth/me
 router.get('/me', requireLogin, (req, res) => {
-  const user = req.app.locals.db.prepare('SELECT * FROM users WHERE id = ?').get(req.user.id);
-  if (!user) {
-    return res.status(404).json({ error: 'User not found' });
-  }
-  return res.json({ user: toPublicUser(user) });
+  return res.json({ user: toPublicUser(req.user) });
 });
 
 module.exports = router;

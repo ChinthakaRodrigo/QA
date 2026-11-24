@@ -17,6 +17,7 @@ export default function NavBar() {
       {user && <Link to="/my-loans">My Loans</Link>}
       {user?.role === 'admin' && <Link to="/books/new">Add Book</Link>}
       {user?.role === 'admin' && <Link to="/admin/loans">All Loans</Link>}
+      {user?.role === 'admin' && <Link to="/admin/users">Users</Link>}
 
       <span className="spacer" />
       {user ? (

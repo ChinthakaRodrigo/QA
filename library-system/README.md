@@ -60,6 +60,14 @@ To reset all data, stop the backend and delete `backend/library.db`.
 - Copies cannot be set lower than the number currently on loan.
 - A book cannot be deleted while any copy is on loan.
 
+**User management** (admin only, full CRUD)
+- Admins can list and search users (by name or email) and see how many books each user has on loan.
+- Admins can create users with the role `member` or `admin` (same name, email and password rules as registration).
+- Admins can edit a user's name, email, role and password. Leaving the password empty keeps the old one.
+- An admin cannot remove their own admin role or delete their own account.
+- A user cannot be deleted while they have books on loan. When a user is deleted, their loan history is deleted too.
+- Changes apply immediately: a deleted user's token stops working, and a new role takes effect on the next request.
+
 **Loans** (logged-in users)
 - A loan lasts **14 days**.
 - A member can hold at most **3 books** at a time.
@@ -89,7 +97,13 @@ To reset all data, stop the backend and delete `backend/library.db`.
 | 12 | Edit a book | Admin | Edit → change copies → saved |
 | 13 | Delete a book | Admin | Delete → confirm → removed (blocked if the book is on loan) |
 | 14 | View all loans | Admin | All Loans shows every member's loans; admin can return them |
-| 15 | Access control | Member/Guest | `/books/new` and `/admin/loans` are blocked; guests are sent to Login |
+| 15 | Access control | Member/Guest | `/books/new`, `/admin/loans` and `/admin/users` are blocked; guests are sent to Login |
+| 16 | Add a user | Admin | Users → Add User → fill the form, choose a role → the user appears and can log in |
+| 17 | Edit a user | Admin | Users → Edit → change the name or role → saved (empty password keeps the old one) |
+| 18 | Delete a user | Admin | Users → Delete → confirm → removed (blocked if the user has books on loan; no Delete button on your own row) |
+| 19 | Search users | Admin | Search "jane" → only Jane Member is shown |
+
+**CRUD summary:** Books and Users have full Create / Read / Update / Delete. Loans have Create (borrow), Read and Update (return).
 
 Good boundary values to test: password length 7/8, name length 50/51, year 1449/1450 and current year/+1, copies 0/1/50/51, the 3rd/4th loan, fine at 19/20/21 days late.
 
@@ -112,6 +126,11 @@ Good boundary values to test: password length 7/8, name length 50/51, year 1449/
 | POST   | `/api/loans/:id/return` | owner/admin | Return a book |
 | GET    | `/api/loans/my` | logged in | My loans |
 | GET    | `/api/loans` | admin | All loans |
+| GET    | `/api/users?search=` | admin | List or search users |
+| GET    | `/api/users/:id` | admin | One user |
+| POST   | `/api/users` | admin | `{ name, email, password, role }` |
+| PUT    | `/api/users/:id` | admin | `{ name, email, role, password? }` |
+| DELETE | `/api/users/:id` | admin | Delete a user |
 
 Send the token as the header `Authorization: Bearer <token>`.
 Errors look like `{ "error": "message", "details": ["..."] }`, with status codes 400, 401, 403, 404, or 409.
@@ -164,7 +183,7 @@ library-system/
 │   │   ├── db.js              database connection + demo data
 │   │   ├── schema.sql         SQL tables (users, books, loans)
 │   │   ├── middleware/auth.js login token checks
-│   │   ├── routes/            auth.js, books.js, loans.js
+│   │   ├── routes/            auth.js, books.js, loans.js, users.js
 │   │   └── utils/             validation.js, loanRules.js, password.js
 │   └── tests/
 │       ├── unit/              tests for the plain functions
@@ -175,7 +194,7 @@ library-system/
 │       ├── AuthContext.jsx    logged-in user
 │       ├── App.jsx            pages and URLs
 │       ├── components/        NavBar, LoansTable, Message, ProtectedRoute
-│       ├── pages/             Books, BookForm, Login, Register, MyLoans, AllLoans
+│       ├── pages/             Books, BookForm, Login, Register, MyLoans, AllLoans, Users, UserForm
 │       └── __tests__/         component tests
 └── sonar-project.properties
 ```

@@ -52,4 +52,10 @@ export const api = {
   returnLoan: (loanId) => request('POST', `/loans/${loanId}/return`),
   getMyLoans: () => request('GET', '/loans/my'),
   getAllLoans: () => request('GET', '/loans'),
+
+  getUsers: (search = '') => request('GET', `/users?search=${encodeURIComponent(search)}`),
+  getUser: (id) => request('GET', `/users/${id}`),
+  createUser: (user) => request('POST', '/users', user),
+  updateUser: (id, user) => request('PUT', `/users/${id}`, user),
+  deleteUser: (id) => request('DELETE', `/users/${id}`),
 };

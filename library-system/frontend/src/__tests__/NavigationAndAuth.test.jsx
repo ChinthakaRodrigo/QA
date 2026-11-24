@@ -38,6 +38,7 @@ describe('NavBar', () => {
     renderPage(<NavBar />, { user: ADMIN });
     expect(screen.getByRole('link', { name: 'Add Book' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'All Loans' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Users' })).toBeInTheDocument();
   });
 
   test('logout logs out and goes to the login page', async () => {

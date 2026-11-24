@@ -7,6 +7,8 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import MyLoansPage from './pages/MyLoansPage';
 import AllLoansPage from './pages/AllLoansPage';
+import UsersPage from './pages/UsersPage';
+import UserFormPage from './pages/UserFormPage';
 
 export default function App() {
   return (
@@ -21,6 +23,9 @@ export default function App() {
           <Route path="/books/new" element={<ProtectedRoute adminOnly><BookFormPage /></ProtectedRoute>} />
           <Route path="/books/:id/edit" element={<ProtectedRoute adminOnly><BookFormPage /></ProtectedRoute>} />
           <Route path="/admin/loans" element={<ProtectedRoute adminOnly><AllLoansPage /></ProtectedRoute>} />
+          <Route path="/admin/users" element={<ProtectedRoute adminOnly><UsersPage /></ProtectedRoute>} />
+          <Route path="/admin/users/new" element={<ProtectedRoute adminOnly><UserFormPage /></ProtectedRoute>} />
+          <Route path="/admin/users/:id/edit" element={<ProtectedRoute adminOnly><UserFormPage /></ProtectedRoute>} />
           <Route path="*" element={<h2>Page not found</h2>} />
         </Routes>
       </main>

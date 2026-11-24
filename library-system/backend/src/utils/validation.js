@@ -7,18 +7,42 @@ function isBlank(value) {
   return typeof value !== 'string' || value.trim() === '';
 }
 
-function validateRegistration({ name, email, password } = {}) {
-  const errors = [];
+const ROLES = ['member', 'admin'];
+
+function checkName(name, errors) {
   if (isBlank(name)) errors.push('Name is required');
   else if (name.trim().length > 50) errors.push('Name must be 50 characters or less');
+}
 
+function checkEmail(email, errors) {
   if (isBlank(email) || !EMAIL_PATTERN.test(email.trim())) errors.push('A valid email is required');
+}
 
+function checkPassword(password, errors) {
   if (typeof password !== 'string' || password.length < 8) {
     errors.push('Password must be at least 8 characters');
   } else if (!/[A-Za-z]/.test(password) || !/\d/.test(password)) {
     errors.push('Password must contain at least one letter and one number');
   }
+}
+
+// Used when someone signs up themselves.
+function validateRegistration({ name, email, password } = {}) {
+  const errors = [];
+  checkName(name, errors);
+  checkEmail(email, errors);
+  checkPassword(password, errors);
+  return errors;
+}
+
+// Used when an admin creates or edits a user.
+// When editing (isNew = false) the password may be left empty to keep the old one.
+function validateUser({ name, email, password, role } = {}, { isNew = true } = {}) {
+  const errors = [];
+  checkName(name, errors);
+  checkEmail(email, errors);
+  if (!ROLES.includes(role)) errors.push('Role must be member or admin');
+  if (isNew || (password !== undefined && password !== '')) checkPassword(password, errors);
   return errors;
 }
 
@@ -52,4 +76,4 @@ function parseId(value) {
   return Number.isInteger(id) && id > 0 ? id : null;
 }
 
-module.exports = { validateRegistration, validateBook, normalizeIsbn, parseId };
+module.exports = { validateRegistration, validateUser, validateBook, normalizeIsbn, parseId };

@@ -3,6 +3,7 @@ const express = require('express');
 const authRoutes = require('./routes/auth');
 const bookRoutes = require('./routes/books');
 const loanRoutes = require('./routes/loans');
+const userRoutes = require('./routes/users');
 
 // db  - an open SQLite database (see db.js)
 // now - function returning the current time (tests pass a fake clock to test overdue books)
@@ -17,6 +18,7 @@ function createApp(db, { now = () => new Date() } = {}) {
   app.use('/api/auth', authRoutes);
   app.use('/api/books', bookRoutes);
   app.use('/api/loans', loanRoutes);
+  app.use('/api/users', userRoutes);
 
   // Unknown API route
   app.use('/api', (req, res) => res.status(404).json({ error: 'Route not found' }));

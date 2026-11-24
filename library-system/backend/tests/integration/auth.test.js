@@ -83,12 +83,13 @@ describe('GET /api/auth/me', () => {
     expect(res.status).toBe(401);
   });
 
-  test('returns 404 if the user was deleted', async () => {
+  test('rejects the token of a deleted user', async () => {
     const { app: freshApp, db } = createTestApp();
     const token = await loginAs(freshApp, MEMBER);
     db.prepare('DELETE FROM users WHERE email = ?').run(MEMBER.email);
     const res = await request(freshApp).get('/api/auth/me').set('Authorization', `Bearer ${token}`);
-    expect(res.status).toBe(404);
+    expect(res.status).toBe(401);
+    expect(res.body.error).toBe('This account no longer exists');
   });
 });
 

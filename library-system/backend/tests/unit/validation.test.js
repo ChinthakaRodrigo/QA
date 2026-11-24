@@ -1,4 +1,38 @@
-const { validateRegistration, validateBook, normalizeIsbn, parseId } = require('../../src/utils/validation');
+const { validateRegistration, validateUser, validateBook, normalizeIsbn, parseId } = require('../../src/utils/validation');
+
+describe('validateUser (admin creates / edits a user)', () => {
+  const valid = { name: 'Tom', email: 'tom@test.com', password: 'Secret123', role: 'member' };
+
+  test('accepts a valid new user', () => {
+    expect(validateUser(valid)).toEqual([]);
+  });
+
+  test.each(['admin', 'member'])('accepts role "%s"', (role) => {
+    expect(validateUser({ ...valid, role })).toEqual([]);
+  });
+
+  test.each(['Admin', 'librarian', '', undefined])('rejects role %p', (role) => {
+    expect(validateUser({ ...valid, role })).toEqual(['Role must be member or admin']);
+  });
+
+  test('requires a password for a new user', () => {
+    expect(validateUser({ ...valid, password: undefined })).toEqual(['Password must be at least 8 characters']);
+  });
+
+  test.each([undefined, ''])('password %p may be left out when editing', (password) => {
+    expect(validateUser({ ...valid, password }, { isNew: false })).toEqual([]);
+  });
+
+  test('a new password given when editing must still be strong', () => {
+    expect(validateUser({ ...valid, password: 'abcdefgh' }, { isNew: false })).toEqual([
+      'Password must contain at least one letter and one number',
+    ]);
+  });
+
+  test('reports every problem for an empty body', () => {
+    expect(validateUser()).toHaveLength(4);
+  });
+});
 
 describe('validateRegistration', () => {
   const valid = { name: 'John', email: 'john@test.com', password: 'Secret123' };
