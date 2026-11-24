@@ -1,0 +1,151 @@
+# CI pipeline for the Library Management System (task 6).
+# Runs every automated test suite on each push and pull request:
+#   1. backend  - Jest unit / integration / black-box / white-box / TDD tests (with coverage) + Cucumber BDD
+#   2. frontend - Vitest component tests (with coverage) + production build
+#   3. e2e      - Selenium WebDriver UI tests in headless Chrome against the running app
+name: CI
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+    branches: [main]
+  workflow_dispatch: # allows a manual run from the Actions tab
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: '24'
+
+jobs:
+  backend:
+    name: Backend tests (Jest + Cucumber)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: library-system/backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: library-system/backend/package-lock.json
+
+      - run: npm ci
+
+      - name: Unit, integration, black-box, white-box and TDD tests with coverage
+        run: npm run test:coverage
+
+      - name: BDD scenarios (Cucumber / Gherkin)
+        run: npm run test:bdd
+
+      - name: Upload backend reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-reports
+          path: |
+            library-system/backend/coverage/
+            library-system/backend/reports/
+          if-no-files-found: ignore
+
+  frontend:
+    name: Frontend tests (Vitest) + build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: library-system/frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: library-system/frontend/package-lock.json
+
+      - run: npm ci
+
+      - name: Component tests with coverage
+        run: npm run test:coverage
+
+      - name: Production build
+        run: npm run build
+
+      - name: Upload frontend coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-coverage
+          path: library-system/frontend/coverage/
+          if-no-files-found: ignore
+
+  e2e:
+    name: UI tests (Selenium, headless Chrome)
+    needs: [backend, frontend]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: |
+            library-system/backend/package-lock.json
+            library-system/frontend/package-lock.json
+            library-system/e2e/package-lock.json
+
+      - name: Install dependencies
+        run: |
+          npm ci --prefix library-system/backend
+          npm ci --prefix library-system/frontend
+          npm ci --prefix library-system/e2e
+
+      - name: Start backend API (fresh in-memory database)
+        working-directory: library-system/backend
+        run: DB_FILE=:memory: nohup node src/server.js > ../backend.log 2>&1 &
+
+      - name: Start frontend
+        working-directory: library-system/frontend
+        run: nohup npx vite --port 3000 --strictPort > ../frontend.log 2>&1 &
+
+      - name: Wait for the app to be ready
+        run: |
+          for i in $(seq 1 60); do
+            if curl -sf http://localhost:5000/api/health && curl -sf http://localhost:3000/api/books > /dev/null; then
+              echo " - app is up"; exit 0
+            fi
+            sleep 1
+          done
+          echo "App did not start"; cat library-system/*.log; exit 1
+
+      - name: Run Selenium tests
+        working-directory: library-system/e2e
+        run: npm run test:ci
+
+      - name: Test summary
+        if: always()
+        working-directory: library-system/e2e
+        run: |
+          node -e "
+            const xml = require('fs').readFileSync('reports/junit.xml', 'utf8');
+            const cases = [...xml.matchAll(/<testcase name=\"([^\"]+)\"[^>]*?(\/>|>([\s\S]*?)<\/testcase>)/g)];
+            const rows = cases.map(([, name, , body = '']) => '| ' + name + ' | ' + (/<failure/.test(body) ? '❌ fail' : '✅ pass') + ' |');
+            console.log(['### Selenium UI tests', '', '| Test | Result |', '|---|---|', ...rows].join('\n'));
+          " >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload screenshots, JUnit report and server logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-results
+          path: |
+            library-system/e2e/screenshots/
+            library-system/e2e/reports/
+            library-system/*.log
+          if-no-files-found: ignore
