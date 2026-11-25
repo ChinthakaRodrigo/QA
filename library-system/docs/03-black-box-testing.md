@@ -19,7 +19,7 @@ The Library Management System is tested here **without using its source code**. 
 | Tools | Jest 30, Supertest 7 |
 | Test data | New in-memory database for every test, with the demo data: 1 admin, 1 member (Jane), 5 books, no loans |
 | Clock | Fixed at **2026-03-01 10:00 UTC**, so "current year" is 2026. Tests move it to check dates |
-| Executed on | 2026-11-24 |
+| Executed on | 2026-11-24, repeated on 2026-11-25 after the BB-04 fix |
 
 ### How to run
 
@@ -120,8 +120,8 @@ Rule: *search by title, author, or ISBN*.
 | EP-47 | Decimal | Invalid | `1.5` | 400, no loan | As expected | Pass |
 | EP-48 | Text | Invalid | `abc` | 400, no loan | As expected | Pass |
 | EP-49 | No such book | Invalid | `999` | 404 | 404 | Pass |
-| EP-50 | Boolean | Invalid | `true` | 400 | **201, book 1 borrowed** | **Fail (BB-04)** |
-| EP-51 | List | Invalid | `[2]` | 400 | **201, book 2 borrowed** | **Fail (BB-04)** |
+| EP-50 | Boolean | Invalid | `true` | 400, no loan | First run: 201, book 1 borrowed. **Retest: 400, no loan** | **Pass** (BB-04 fixed) |
+| EP-51 | List | Invalid | `[2]` | 400, no loan | First run: 201, book 2 borrowed. **Retest: 400, no loan** | **Pass** (BB-04 fixed) |
 
 ### EP-F Request format (F-09)
 Rule: *correct HTTP status codes; no unhandled server errors (HTTP 500)* (test plan 1.4).
