@@ -168,6 +168,18 @@ npm install
 npm test                 # 8 Selenium WebDriver tests in headless Chrome (see docs/06-test-automation-and-ci.md)
 ```
 
+### Performance and security tests
+
+```powershell
+# load test: start the backend first, needs Apache JMeter 5.6.3
+powershell -ExecutionPolicy Bypass -File performance/run-load-tests.ps1 -JMeter C:/apache-jmeter-5.6.3/bin/jmeter.bat
+
+# OWASP Top 10 checks: starts its own API with a temporary database
+node security/owasp-checks.js
+```
+
+Results, security findings and the usability review are in `docs/07-performance-security-usability.md`.
+
 ### Continuous integration
 
 GitHub Actions (`.github/workflows/ci.yml` in the repository root) runs on every push and pull request:
@@ -223,5 +235,7 @@ library-system/
 │       ├── components/        NavBar, LoansTable, Message, ProtectedRoute
 │       ├── pages/             Books, BookForm, Login, Register, MyLoans, AllLoans, Users, UserForm
 │       └── __tests__/         component tests
+├── performance/               JMeter load test plan, run script and results (summary.csv)
+├── security/                  OWASP Top 10 checks and their output
 └── sonar-project.properties
 ```

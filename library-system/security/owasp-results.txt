@@ -1,0 +1,74 @@
+SEC-01  PASS  [A01] Guest calls all 13 protected routes
+        expected: 401 for every route
+        actual:   401 401 401 401 401 401 401 401 401 401 401 401 401
+SEC-02  PASS  [A01] Member calls all 9 admin routes
+        expected: 403 for every route
+        actual:   403 403 403 403 403 403 403 403 403
+SEC-03  PASS  [A01] Register with an extra "role": "admin" field
+        expected: role = member
+        actual:   201, role = member
+SEC-04  PASS  [A01] Sam returns Jane's loan by changing the id in the URL (IDOR)
+        expected: 403, loan stays open
+        actual:   403, loan is "borrowed"
+SEC-05  PASS  [A01] Use the token of a deleted user
+        expected: 401
+        actual:   401
+SEC-06  PASS  [A02] Read a password from the database
+        expected: salted hash, no plain text
+        actual:   5ca90407... (salt) : 07d166be... (64-byte scrypt hash)
+SEC-07  PASS  [A02] Look for password hashes in API responses
+        expected: none
+        actual:   none
+SEC-08  PASS  [A02] Unsigned token ("alg": "none") for the admin
+        expected: 401
+        actual:   401
+SEC-09  PASS  [A02] Jane's token with the id changed to 1 (admin)
+        expected: 401
+        actual:   401
+SEC-10  FAIL  [A02] Forge an admin token with the default secret from the source code, without any password
+        expected: 401
+        actual:   200, 2 users listed as admin
+SEC-11  PASS  [A03] SQL injection in the book search (OR, UNION, DROP TABLE)
+        expected: 200 with 0 books, 3 times
+        actual:   200/0 books, 200/0 books, 200/0 books
+SEC-12  PASS  [A03] SQL injection in the login email
+        expected: 401, 401
+        actual:   401, 401
+SEC-13  PASS  [A03] SQL injection in a URL id
+        expected: 400
+        actual:   400
+SEC-14  FAIL  [A05] Does the server reveal its technology?
+        expected: no X-Powered-By header
+        actual:   X-Powered-By: Express
+SEC-15  FAIL  [A05] Security headers
+        expected: x-content-type-options, content-security-policy, strict-transport-security
+        actual:   missing: x-content-type-options, content-security-policy, strict-transport-security
+SEC-16  PASS  [A05] Error responses do not show stack traces or file paths
+        expected: generic message only
+        actual:   {"error":"Request body is not valid JSON"} {"error":"Something went wrong"}
+SEC-17  FAIL  [A05] Log in with the admin password printed in the public README
+        expected: 401 or forced password change
+        actual:   200
+SEC-18  FAIL  [A07] Brute force: 100 wrong passwords for one account, then the right one
+        expected: 429 or account lock
+        actual:   100 x 401 in 4.7 s, then 200
+SEC-19  FAIL  [A09] Are those 100 failed logins in the server log?
+        expected: at least one log entry
+        actual:   log is empty
+SEC-20  PASS  [A07] Login error for an unknown email and for a wrong password
+        expected: identical
+        actual:   401 {"error":"Invalid email or password"} / 401 {"error":"Invalid email or password"}
+SEC-21  FAIL  [A07] Response time for a registered and an unknown email (median of 30)
+        expected: about the same
+        actual:   44.1 ms / 1.5 ms
+SEC-22  FAIL  [A07] Register with the very common password "password1"
+        expected: 400
+        actual:   201
+SEC-23  FAIL  [A07] Admin resets Jane's password, then her old token is used
+        expected: 401
+        actual:   reset 200, old token 200
+SEC-10b  PASS  [A02] SEC-10 again, with JWT_SECRET set to a random value
+        expected: 401
+        actual:   401
+
+24 checks, 15 passed, 9 failed: SEC-10, SEC-14, SEC-15, SEC-17, SEC-18, SEC-19, SEC-21, SEC-22, SEC-23
