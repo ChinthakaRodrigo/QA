@@ -10,16 +10,16 @@ Test cases are designed here **from the source code**: the control flow is drawn
 | | `utils/validation.js` (contains the most complex function in the backend) |
 | Also covered | Branches in `app.js`, `db.js` and `routes/auth.js` that no other suite reached (section 4.6) |
 | Tools | Jest 30 coverage (Istanbul), ESLint 9 `complexity` rule to check the manual calculations |
-| Tests | 61 tests in `backend/tests/whitebox/` |
-| Executed on | 2026-11-24, Windows 11, Node.js 24.11 |
+| Tests | 67 tests in `backend/tests/whitebox/` |
+| Executed on | 2026-11-24; updated on 2026-11-25 for the BB-04 fix in `parseId` and the new `checkRenewal` (task 3.5). Windows 11, Node.js 24.11 |
 
 ### How to run
 
 ```bash
 cd backend
 npm install
-npm run test:whitebox            # all 61 tests, with coverage
-npm run test:whitebox:statement  # only the statement-coverage set (24 tests)
+npm run test:whitebox            # all 67 tests, with coverage
+npm run test:whitebox:statement  # only the statement-coverage set (28 tests)
 npm run test:coverage            # every backend suite, with coverage
 ```
 
@@ -44,22 +44,23 @@ Every simple condition is counted: `if`, `?:`, each `&&` and `||`, `??`, `?.` an
 | `loans.js` | **Borrow handler** | 6 | **7** |
 | | **Return handler** | 5 | **6** |
 | | 4 other functions (`withStatus` and its callback, two list handlers) | 0 each | 1 each |
-| `loanRules.js` | `getLoanStatus` | 2 | 3 |
+| `loanRules.js` | `checkRenewal` | 3 | 4 |
+| | `getLoanStatus` | 2 | 3 |
 | | `daysLate` | 1 | 2 |
 | | `calculateDueDate`, `calculateFine` | 0 each | 1 each |
 | `validation.js` | **`validateBook`** | 13 | **14** |
 | | `validateUser` | 7 | 8 |
-| | `checkPassword` | 4 | 5 |
-| | `checkName`, `checkEmail`, `parseId` | 2 each | 3 each |
+| | `checkPassword`, `parseId` | 4 each | 5 each |
+| | `checkName`, `checkEmail` | 2 each | 3 each |
 | | `isBlank`, `normalizeIsbn`, `validateRegistration` | 1 each | 2 each |
 
-Module totals: `loans.js` 17, `loanRules.js` 7, `validation.js` 42. ESLint gives the same values.
+Module totals: `loans.js` 17, `loanRules.js` 11, `validation.js` 44. ESLint gave the same values for the first version; after the code changes every function was counted again with a small script on the syntax tree (Babel parser), with the same rules.
 
-### Whole backend (51 functions, ESLint)
+### Whole backend (52 functions)
 
 | V(G) | Risk (McCabe) | Functions | Which |
 |---|---|---|---|
-| 1–10 | Low | 50 (98 %) | Highest: `validateUser` 8, update user 8, borrow 7, return 6, login 6, update book 6 |
+| 1–10 | Low | 51 (98 %) | Highest: `validateUser` 8, update user 8, borrow 7, return 6, login 6, update book 6 |
 | 11–20 | Moderate | 1 (2 %) | `validateBook` 14 |
 | 21 and above | High | 0 | |
 
@@ -175,6 +176,17 @@ flowchart TD
 | WB-22 | S | `getLoanStatus` | Not returned, after the due date | `overdue` | Pass |
 | WB-23 | B | `getLoanStatus` | Not returned, before the due date | `borrowed` | Pass |
 
+### `checkRenewal`: V(G) = 4
+
+Conditions: status is not `borrowed`, `renewals` missing (`??`), limit reached. P = 3, so V(G) = 3 + 1 = **4** basis paths.
+
+| ID | Set | Path | Case | Expected | Status |
+|---|---|---|---|---|---|
+| WB-64 | S | 1: not an active loan | Returned loan | Refused, "already been returned" | Pass |
+| WB-65 | S | 2: limit reached | Renewed 2 times | Refused, "at most 2 times" | Pass |
+| WB-66 | S | 3: allowed, `renewals` given | Renewed once | Due 14 days after the old due date, 0 renewals left | Pass |
+| WB-67 | B | 4: allowed, `renewals` missing | Never renewed | Due 14 days after the old due date, 1 renewal left | Pass |
+
 ---
 
 ## 4.5 `validation.js`
@@ -244,6 +256,8 @@ Condition table for `isNew || (password !== undefined && password !== '')`, whic
 | WB-55 | S | `parseId`: whole number above 0 | 5 | Pass |
 | WB-56 | B | `parseId`: not a whole number | `null` | Pass |
 | WB-57 | B | `parseId`: whole number, not above 0 | `null` | Pass |
+| WB-62 | S | `parseId`: neither text nor number (`true`) | `null` | Pass |
+| WB-63 | B | `parseId`: number instead of text | 7 | Pass |
 
 ---
 
@@ -265,23 +279,23 @@ The coverage report of the other suites (unit, integration and black-box) showed
 
 ### Statement coverage compared with branch coverage
 
-| Module | Statement set (24 tests): statements | Statement set: branches | All 61 white-box tests: statements | All 61: branches |
+| Module | Statement set (28 tests): statements | Statement set: branches | All 67 white-box tests: statements | All 67: branches |
 |---|---|---|---|---|
 | `loans.js` | 100 % | 100 % | 100 % | 100 % |
-| `loanRules.js` | 100 % | 100 % | 100 % | 100 % |
-| `validation.js` | 100 % | **84.21 %** | 100 % | **100 %** |
+| `loanRules.js` | 100 % | **91.66 %** | 100 % | **100 %** |
+| `validation.js` | 100 % | **85.24 %** | 100 % | **100 %** |
 
 ### Whole backend (all suites)
 
 | | Tests | Statements | Branches | Functions | Lines |
 |---|---|---|---|---|---|
-| Before white-box testing | 302 | 99.44 % | 96.75 % | 98 % | 99.68 % |
-| After white-box testing | 363 | **100 %** | **100 %** | **100 %** | **100 %** |
+| Without the white-box tests | 317 | 99.46 % | 96.92 % | 98.03 % | 99.69 % |
+| With the white-box tests | 384 | **100 %** | **100 %** | **100 %** | **100 %** |
 
 The test plan target (at least 80 % line and branch coverage) is met for the backend. `server.js`, which only starts the application, is excluded from coverage.
 
 ### Do the tests find faults?
-Coverage only shows that code was *executed*. To check that the tests also *detect* faults, 12 faults were inserted one at a time into a copy of the code.
+Coverage only shows that code was *executed*. To check that the tests also *detect* faults, 17 faults were inserted one at a time into a copy of the code.
 
 | # | Fault inserted | Found by statement set | Found by all tests |
 |---|---|---|---|
@@ -297,7 +311,12 @@ Coverage only shows that code was *executed*. To check that the tests also *dete
 | 10 | `parseId`: `id > 0` removed | No | Yes |
 | 11 | `daysLate`: `diff > 0` removed | No | Yes (after improving WB-18) |
 | 12 | `seedDatabase`: "already has data" check removed | No | Yes |
-| | **Total** | **2 of 12** | **12 of 12** |
+| 13 | `parseId`: type check removed (BB-04 again) | Yes | Yes |
+| 14 | `parseId`: numbers rejected | Yes | Yes |
+| 15 | `checkRenewal`: `>=` changed to `>` | Yes | Yes |
+| 16 | `checkRenewal`: `?? 0` removed | No | Yes |
+| 17 | `checkRenewal`: new date counted from today | Yes | Yes |
+| | **Total** | **6 of 17** | **17 of 17** |
 
 Two lessons from this:
 
@@ -308,7 +327,7 @@ Two lessons from this:
 
 ## 4.8 Findings
 
-**No new defects** were found in the loans and validation modules. All 61 tests passed.
+**No new defects** were found in the loans and validation modules. All 67 tests passed.
 
 ### Causes of the black-box defects
 Reading the code shows where the defects of [task 3.3](03-black-box-testing.md) come from. This can be used for the root cause analysis in task 3.8.
@@ -318,10 +337,10 @@ Reading the code shows where the defects of [task 3.3](03-black-box-testing.md) 
 | BB-01 | `routes/books.js`, list handler (same code in `routes/users.js`) | Search text is put into a `LIKE` pattern without escaping `%` and `_` |
 | BB-02 | `routes/books.js`, list handler | `normalizeIsbn` is used when saving but not when searching |
 | BB-03 | `utils/validation.js`, `EMAIL_PATTERN` | `[^\s@]+` also matches dots, so empty domain parts are allowed |
-| BB-04 | `utils/validation.js`, `parseId` | `Number(value)` converts other types: `Number(true)` is 1 and `Number([2])` is 2 |
+| BB-04 (fixed) | `utils/validation.js`, `parseId` | `Number(value)` converts other types: `Number(true)` is 1 and `Number([2])` is 2. The fix checks the type first (WB-62, WB-63) |
 | BB-05, BB-06 | `app.js`, error handler | Only malformed JSON is handled; every other client error becomes 500 |
 
-BB-04 also shows a limit of white-box testing: `parseId` has 100 % branch coverage, but a *missing* type check has no branch to cover. Both techniques are needed.
+BB-04 also shows a limit of white-box testing: before the fix `parseId` had 100 % branch coverage, but a *missing* type check has no branch to cover. Both techniques are needed.
 
 ### Recommendations
 1. **Split `validateBook` (V(G) = 14)** into helpers such as `checkText(value, label, max)` and `checkWholeNumber(value, label, min, max)`. This brings every function below 10 and removes the repeated title/author and year/copies code.

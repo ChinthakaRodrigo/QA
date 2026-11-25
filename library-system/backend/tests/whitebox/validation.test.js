@@ -86,11 +86,13 @@ describe('normalizeIsbn, V(G) = 2', () => {
   });
 });
 
-describe('parseId, V(G) = 3', () => {
+describe('parseId, V(G) = 5', () => {
   test.each([
     ['WB-55 STMT whole number above 0', '5', 5],
     ['WB-56 not a whole number', 'abc', null],
     ['WB-57 whole number, not above 0', '0', null],
+    ['WB-62 STMT neither text nor number', true, null],
+    ['WB-63 number', 7, 7],
   ])('%s', (_name, input, expected) => {
     expect(parseId(input)).toBe(expected);
   });
