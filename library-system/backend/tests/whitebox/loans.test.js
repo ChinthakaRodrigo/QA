@@ -3,7 +3,13 @@
 // the other tests are added for branch and condition coverage.
 const request = require('supertest');
 const { createTestApp, loginAs, ADMIN, MEMBER } = require('../helpers');
-const { calculateDueDate, daysLate, calculateFine, getLoanStatus } = require('../../src/utils/loanRules');
+const {
+  calculateDueDate,
+  daysLate,
+  calculateFine,
+  getLoanStatus,
+  checkRenewal,
+} = require('../../src/utils/loanRules');
 
 const SINGLE_COPY_BOOK = 3;
 const DUE = '2026-03-15T10:00:00.000Z';
@@ -125,7 +131,7 @@ describe('loans.js', () => {
   });
 });
 
-describe('loanRules.js, total V(G) = 7', () => {
+describe('loanRules.js, total V(G) = 11', () => {
   test('WB-16 STMT calculateDueDate: adds 14 days', () => {
     expect(calculateDueDate('2026-03-01T10:00:00.000Z').toISOString()).toBe(DUE);
   });
@@ -157,5 +163,29 @@ describe('loanRules.js, total V(G) = 7', () => {
 
   test('WB-23 getLoanStatus: borrowed', () => {
     expect(getLoanStatus({ due_at: DUE, returned_at: null }, '2026-03-14T10:00:00Z')).toBe('borrowed');
+  });
+  describe('checkRenewal, V(G) = 4', () => {
+    const NOW = '2026-03-10T10:00:00Z';
+    const NEW_DUE = new Date('2026-03-29T10:00:00.000Z');
+
+    test('WB-64 STMT path 1: not an active loan', () => {
+      const loan = { due_at: DUE, returned_at: '2026-03-09T10:00:00Z', renewals: 0 };
+      expect(checkRenewal(loan, NOW)).toEqual({ allowed: false, reason: 'This book has already been returned' });
+    });
+
+    test('WB-65 STMT path 2: renewal limit reached', () => {
+      const loan = { due_at: DUE, returned_at: null, renewals: 2 };
+      expect(checkRenewal(loan, NOW)).toEqual({ allowed: false, reason: 'A loan can be renewed at most 2 times' });
+    });
+
+    test('WB-66 STMT path 3: renewed once before', () => {
+      const loan = { due_at: DUE, returned_at: null, renewals: 1 };
+      expect(checkRenewal(loan, NOW)).toEqual({ allowed: true, newDueAt: NEW_DUE, renewalsLeft: 0 });
+    });
+
+    test('WB-67 path 4: renewals missing, counts as 0', () => {
+      const loan = { due_at: DUE, returned_at: null };
+      expect(checkRenewal(loan, NOW)).toEqual({ allowed: true, newDueAt: NEW_DUE, renewalsLeft: 1 });
+    });
   });
 });
